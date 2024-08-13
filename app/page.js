@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { use, useEffect, useState } from "react";
-import {Box, Typography} from "@mui/material";
+import {Box, Modal, Typography, Stack, TextField} from "@mui/material";
 import { firestore } from "@/firebase";
 import { collection, setDoc } from "firebase/firestore";
 
@@ -11,7 +11,7 @@ import { collection, setDoc } from "firebase/firestore";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [itemName, setItemName] = useState("");
 
   const updateInventory = async () => {
@@ -72,10 +72,43 @@ const handleClose = () => setOpen(false);
     justifyContent = "center"
     alignItems = "center"
     gap = {2}
-    flexDirection = "column"
     >
 
-      
+    <Modal open={open} onClose={handleClose}>
+      <Box
+      position="absolute"
+      top="50%"
+      left="50%"
+      width={400}
+      bgcolor="white" 
+      border="2px solid #000"
+      boxShadow={24}
+          p={4}
+      display='flex'
+      flexDirection='column'
+      gap={3}
+      sx = {{
+        transform: 'translate(-50%, -50%)',
+      }}
+      >
+
+      <Typography variant="h6">Add Item</Typography>
+      <Stack width="100%" direction='row' spacing={2}>
+        <TextField
+        variant='outlined'
+        fullWidth
+        value={itemName}
+        onChange={(e) => {
+          setItemName(e.target.value);
+        }}
+        ></TextField>
+      </Stack>
+
+
+      </Box>
+      </Modal>
+
+
       <Typography variant="h1">Inventory Management</Typography>
   </Box>
     )
