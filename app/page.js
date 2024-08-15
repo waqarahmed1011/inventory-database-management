@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import { Box, Modal, Typography, Stack, TextField, Button, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { Box, Modal, Typography, Stack, TextField, Button, MenuItem, Select, InputLabel, FormControl, Paper } from "@mui/material";
 import { firestore } from "@/firebase";
 import { collection, setDoc, deleteDoc, doc, getDocs, query, getDoc } from "firebase/firestore";
 
@@ -15,6 +15,7 @@ export default function Home() {
   const [itemCategory, setItemCategory] = useState("");
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemExpiryDate, setItemExpiryDate] = useState("");
+  const [noItemsFound, setNoItemsFound] = useState(false);
 
   const categories = ["Fruits", "Vegetables", "Dairy", "Meat", "Beverages", "Snacks", "Other"];
 
@@ -77,6 +78,7 @@ export default function Home() {
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredInventory(filtered);
+    setNoItemsFound(filtered.length === 0);
   };
 
   const handleFilter = () => {
@@ -84,6 +86,7 @@ export default function Home() {
       item.category === filterCategory || filterCategory === ""
     );
     setFilteredInventory(filtered);
+    setNoItemsFound(filtered.length === 0);
   };
 
   useEffect(() => {
@@ -99,111 +102,117 @@ export default function Home() {
       height="100vh"
       display="flex"
       flexDirection="column"
-      justifyContent="center"
+      justifyContent="flex-start"
       alignItems="center"
-      gap={2}
+      p={4}
+      bgcolor="#8fd4cb"
     >
-      <Box border="1px solid #333" mb={2}>
-        <Box
-          width="800px"
-          height="100px"
-          bgcolor="#ADD8E6"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Typography variant="h2" color="#333">
+      <Typography variant="h3" color="white" mb={4}>
+        Welcome to the AI Pantry Track App!
+      </Typography>
+
+      <Paper elevation={3} style={{ width: '100%', maxWidth: '800px', padding: '20px' }}>
+        <Box mb={2}>
+          <Typography variant="h4" color="primary" textAlign="center">
             Inventory Items
           </Typography>
         </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow="auto" p={2}>
-          {filteredInventory.map(({ name, quantity, category, expiryDate }) => (
-            <Box
-              key={name}
-              width="100%"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              bgcolor="#f0f0f0"
-              p={2}
-            >
-              <Box display="flex" flexDirection="column" flex="1">
-                <Typography variant="h3" color="#333">
-                  {name.charAt(0).toUpperCase() + name.slice(1)}
+        <Stack height="300px" spacing={2} overflow="auto">
+          {noItemsFound ? (
+            <Typography variant="h6" color="error" textAlign="center" width="100%">
+              No items found. Maybe you typed it incorrectly?
+            </Typography>
+          ) : (
+            filteredInventory.map(({ name, quantity, category, expiryDate }) => (
+              <Paper elevation={1} key={name} style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box display="flex" flexDirection="column" flex="1">
+                  <Typography variant="h5" color="textPrimary">
+                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Category: {category}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Expiry Date: {expiryDate || "N/A"}
+                  </Typography>
+                </Box>
+                <Typography variant="h4" color="textPrimary" style={{ marginRight: '20px' }}>
+                  {quantity}
                 </Typography>
-                <Typography variant="body1" color="#555">
-                  Category: {category}
-                </Typography>
-                <Typography variant="body1" color="#555">
-                  Expiry Date: {expiryDate || "N/A"}
-                </Typography>
-              </Box>
-              <Typography variant="h3" color="#333" style={{ marginRight: '20px' }}>
-                {quantity}
-              </Typography>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="contained"
-                  onClick={() => addItem(name)}
-                >
-                  Add
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => removeItem(name)}
-                >
-                  Remove
-                </Button>
-              </Stack>
-            </Box>
-          ))}
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => addItem(name)}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => removeItem(name)}
+                  >
+                    Remove
+                  </Button>
+                </Stack>
+              </Paper>
+            ))
+          )}
         </Stack>
-      </Box>
+      </Paper>
 
       <Stack direction="row" spacing={2} mt={2}>
         <Button
           variant="contained"
+          color="primary"
           onClick={handleOpen}
         >
           Add New Item
         </Button>
-        
-        <TextField
-          variant="outlined"
-          label="Search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          onClick={handleSearch}
-        >
-          Search
-        </Button>
 
-        <FormControl variant="outlined">
-          <InputLabel>Filter by Category</InputLabel>
-          <Select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            label="Filter by Category"
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSearch}
           >
-            <MenuItem value="">
-              <em>All</em>
-            </MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
+            Search
+          </Button>
+          <TextField
+            variant="outlined"
+            label="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+          />
+        </Stack>
+
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleFilter}
+          >
+            Filter
+          </Button>
+          <FormControl variant="outlined" size="small">
+            <InputLabel>Filter by Category</InputLabel>
+            <Select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              label="Filter by Category"
+            >
+              <MenuItem value="">
+                <em>All</em>
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          onClick={handleFilter}
-        >
-          Filter
-        </Button>
+              {categories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
       </Stack>
 
       <Modal open={open} onClose={handleClose}>
@@ -213,7 +222,7 @@ export default function Home() {
           left="50%"
           width={400}
           bgcolor="white"
-          border="2px solid #000"
+          borderRadius={2}
           boxShadow={24}
           p={4}
           display="flex"
@@ -223,7 +232,7 @@ export default function Home() {
             transform: 'translate(-50%, -50%)',
           }}
         >
-          <Typography variant="h6">Add Item</Typography>
+          <Typography variant="h6" color="textPrimary">Add Item</Typography>
           <Stack width="100%" direction="column" spacing={2}>
             <TextField
               variant="outlined"
@@ -234,11 +243,12 @@ export default function Home() {
                 setItemName(e.target.value);
               }}
             />
-            <FormControl fullWidth>
+            <FormControl fullWidth variant="outlined">
               <InputLabel>Category</InputLabel>
               <Select
                 value={itemCategory}
                 onChange={(e) => setItemCategory(e.target.value)}
+                label="Category"
               >
                 {categories.map((category) => (
                   <MenuItem key={category} value={category}>
@@ -270,6 +280,7 @@ export default function Home() {
             />
             <Button
               variant="contained"
+              color="primary"
               onClick={() => addItem(itemName)}
             >
               Add
